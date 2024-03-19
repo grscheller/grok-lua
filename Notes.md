@@ -1,8 +1,14 @@
-## Grokking Lua Notes
+# Grokking Lua Notes
 
-Repo to capture my attempts to master Lua.
+Chronological notes on my journey to master Lua.
 
-### Notes
+## Notes
+
+I don't intend to retroactively edit these notes useless they are
+either misleadingly confusing, factually inaccurate, or to edit out
+typos.
+
+### 2024-03-18: Get a hello world program working
 
 Here are my available tools I have so far on Arch Linux.
 
@@ -34,7 +40,7 @@ from the commandline.
     B:  42 
 ```
 
-See [hw.lua][1] for source code.
+See [hw.lua][1] from my firsty Lua project for the source code.
 
 ---
 
