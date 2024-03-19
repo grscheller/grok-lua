@@ -5,10 +5,12 @@ Chronological notes on my journey to master Lua.
 ## Notes
 
 I don't intend to retroactively edit these notes useless they are
-either misleadingly confusing, factually inaccurate, or to edit out
-typos.
+either misleadingly confusing or factually inaccurate.
 
 ### 2024-03-18: Get a hello world program working
+
+I intend to start by getting a variant of the first example program
+from `:help lua-intro` to work.
 
 Here are my available tools I have so far on Arch Linux.
 
@@ -37,10 +39,10 @@ from the commandline.
 
     $ nvim -l hw.lua
     A:  Hello, World!
-    B:  42 
+    B:  42
 ```
 
-See [hw.lua][1] from my firsty Lua project for the source code.
+See [hw.lua][1] from my first Lua project for the source code.
 
 ---
 
