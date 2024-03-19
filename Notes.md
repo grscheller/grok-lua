@@ -4,10 +4,17 @@ Chronological notes on my journey to master Lua.
 
 ## Notes
 
-I don't intend to retroactively edit these notes useless they are
-either misleadingly confusing or factually inaccurate.
+I don't intend to retroactively edit these notes useless they are either
+misleadingly confusing or factually inaccurate. Linked notes are subject
+to change at any time.
 
-### 2024-03-18: Get a hello world program working
+### Pinned links
+
+Pinned information will go here.
+
+### 2024-03-18:
+
+#### Getting a hello world program working
 
 I intend to start by getting a variant of the first example program
 from `:help lua-intro` to work.
