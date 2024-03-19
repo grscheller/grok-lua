@@ -1,7 +1,7 @@
 # Grokking Lua
 
 Repo to capture my attempts to master Lua. Structured as
-[notes][1] and a series of projects.
+[notes](Notes.md) and a series of projects.
 
 ## Projects
 

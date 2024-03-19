@@ -38,4 +38,4 @@ See [hw.lua][1] for source code.
 
 ---
 
-[1]: projects/01-hello-world/hw.lua
+[1]: https://github.com/grscheller/grok-lua/blob/main/projects/01-hello-world/hw.lua
