@@ -111,13 +111,37 @@ Lets see what Neovim is currently using,
     Run "nvim -V1 -v" for more info
 ```
 
-Still TODO:
+#### Blurry future directions
 
-- configure nvim and fish for this installation location
-- test what was done before back in 2024
+The possible directions I may want to follow are
+
+- Neovim plugin development
+- Lua command-line tools
+- Luau Roblox game development
+
+##### Neovim plugin development
+
+There is a GitHub group named nvim-neorocks. Their stated aims are
+to encourage good software practices in the neovim plugin ecosystem.
+The group is working on a plugin manager called `rocks.nvim` which
+is cargo-like and leverages LuaRocks. Also, `lazy-nvim` has started
+supporting the LuaRocks Rockspec file format, see the lazy.nvim
+[What's new][4] page.
+
+##### Lua commandline tools
+
+At this point I wish to keep this ecosystem separate from the one
+I use to write Neovim plugins.
+
+##### Roblox
+
+My daughters keep asking me to help them with luau scripting with their
+Roadblocks games. This will give me an opportunity to work with another
+Lua fork other than LuaJIT.
 
 ---
 
 [1]: https://github.com/grscheller/grok-lua/blob/main/projects/01-hello-world/hw.lua
 [2]: https://github.com/torch/luajit-rocks
 [3]: https://luarocks.org/
+[4]: https://lazy.folke.io/news#11x
