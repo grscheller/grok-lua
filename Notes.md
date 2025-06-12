@@ -53,7 +53,7 @@ See [hw.lua][1] from my first Lua project for the source code.
 
 ### 2025-06-10:
 
-#### Installing a Lua environment
+#### Installing a Lua environment (Redone 2025-06-11)
 
 Moved from Arch Linux to Pop!_OS 24.04 LTS x86_64. I am using a late
 COSMIC desktop Alpha release. I don't trust what the underlying Ubuntu
@@ -86,7 +86,7 @@ Lets see what got installed.
     -rwxr-xr-x 1 grs grs    642 Jun 10 14:38 luarocks-admin
     $ ./bin/luajit -v
     LuaJIT 2.1.0-beta2 -- Copyright (C) 2005-2017 Mike Pall. http://luajit.org/
-    
+
      _____              _
     |_   _|            | |
       | | ___  _ __ ___| |__
@@ -139,9 +139,253 @@ My daughters keep asking me to help them with luau scripting with their
 Roadblocks games. This will give me an opportunity to work with another
 Lua fork other than LuaJIT.
 
+### 2025-06-11:
+
+#### Observations
+
+Observations of yesterday installation:
+
+- what was installed was luarocks 2.3.0
+- latest luarocks is 3.12.0
+- luarocks IS NOT COMPATIBLE with luau
+- luajit is more or less compatible with lua 5.1
+  - there is something called the [luajit Manifest][5]
+  - lists all the lua modules compatible with luajit
+  - to install one `$ luarocks install --server=https://luarocks.org/m/luajit <name>`
+- the luarocks executable is a shebank script
+  - it points to the luajit installed with it
+  - it looks to be configured for the specific luajit installed with it
+
+This is not what I want. Ripping out what I installed yesterday and
+starting over.
+
+#### Get LuaRocks installed
+
+First, I will install the default LuaJIT that comes with PopOS. Which is
+`luajit/noble 2.1.0+git20231223.c525bcb+dfsg-1 amd64`.
+
+```
+    $ cd ~/devel
+    $ rm -r luajit_rocks/
+    $ sudo apt install luajit
+    $ luajit -v
+    LuaJIT 2.1.1703358377 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/
+    $ nvim --version | grep LuaJIT
+    LuaJIT 2.1.1703358377
+```
+
+We have a winner! Also, LuaJIT 3.12.0 was just released last week.
+
+Now lets build luarocks. I will follow the installation instructions for
+Ubuntu from the [luarocks github repo][6]. The instructions are under
+`docs/installation_instructions_for_unix.md`.
+
+Downloaded `luarocks-3.12.0.tar.gz` from the LuaRocks [release page][6].
+
+Now lets build and install it.
+
+```fish
+    $ sudo apt install build-essential libreadline-dev unzip
+    $ cd ~/build
+    $ mkdir luarocks
+    $ cd luarocks
+    $ mv ~/luarocks-3.12.0.tar.gz .
+    $ ax luarocks-3.12.0.tar.gz
+    $ cd luarocks-3.12.0
+    $ ./configure --prefix=/home/grs/devel/luarocks
+
+    Configuring LuaRocks version 3.12.0...
+
+    Lua version detected: 5.1
+    Lua interpreter found: /usr/bin/luajit
+    lua.h for Lua 5.1 not found (tried /usr/include/lua/5.1/lua.h /usr/include/lua5.1/lua.h /usr/include/lua-5.1/lua.h /usr/include/lua51/lua.h /usr/include/lua.h /usr/include/luajit-2.1/lua.h)
+
+    If the development files for Lua (headers and libraries)
+    are installed in your system, you may need to use the
+    --with-lua or --with-lua-include flags to specify their location.
+
+    If those files are not yet installed, you need to install
+    them using the appropriate method for your operating system.
+
+    Run ./configure --help for details on flags.
+
+    configure failed.
+```
+
+As expected, the first command installed nothing new. I think
+configuration failed because it needs a development version?
+
+```
+    $ apt list '*' | grep -i luajit
+
+    WARNING: apt does not have a stable CLI interface. U1se with caution in scripts.
+
+    libluajit-5.1-2/noble,now 2.1.0+git20231223.c525bcb+dfsg-1 amd64 [installed,automatic]
+    libluajit-5.1-common/noble,noble,now 2.1.0+git20231223.c525bcb+dfsg-1 all [installed,automatic]
+    libluajit-5.1-dev/noble 2.1.0+git20231223.c525bcb+dfsg-1 amd64
+    libluajit2-5.1-2/noble 2.1-20230410-1build1 amd64
+    libluajit2-5.1-common/noble,noble 2.1-20230410-1build1 all
+    libluajit2-5.1-dev/noble 2.1-20230410-1build1 amd64
+    libtexluajit-dev/noble 2023.20230311.66589-9build3 amd64
+    libtexluajit-dev/noble 2023.20230311.66589-9build3 i386
+    libtexluajit2/noble 2023.20230311.66589-9build3 amd64
+    libtexluajit2/noble 2023.20230311.66589-9build3 i386
+    luajit2/noble 2.1-20230410-1build1 amd64
+    luajit/noble,now 2.1.0+git20231223.c525bcb+dfsg-1 amd64 [installed]
+    uwsgi-plugin-luajit/noble 2.0.22+4+0.0.8build2 amd64
+
+    $ sudo apt install libluajit-5.1-dev
+    $ cd ..
+    $ rm -r luarocks-3.12.0
+    $ ax luarocks-3.12.0.tar.gz
+    $ cd luarocks-3.12.0
+    $ ./configure --prefix=/home/grs/devel/luarocks --with-lua-include=/usr/include/luajit-2.1
+
+    Configuring LuaRocks version 3.12.0...
+
+    Lua version detected: 5.1
+    Lua interpreter found: /usr/bin/luajit
+    lua.h found: /usr/include/luajit-2.1/lua.h
+    unzip found in PATH: /usr/bin
+
+    Done configuring.
+
+    LuaRocks will be installed at......: /home/grs/devel/luarocks
+    LuaRocks will install rocks at.....: /home/grs/devel/luarocks
+    LuaRocks configuration directory...: /home/grs/devel/luarocks/etc/luarocks
+    Using Lua from.....................: /usr
+    Lua include directory..............: /usr/include/luajit-2.1
+
+    * Type make and make install:
+      to install to /home/grs/devel/luarocks as usual.
+    * Type make bootstrap:
+      to install LuaRocks into /home/grs/devel/luarocks as a rock.
+    $ make
+    $ make install
+```
+
+The installed luajit works.
+
+```
+    $ cd projects/01-hello-world/
+    (grs) [grs@godel2: ~/devel/grok/grok-lua/projects/01-hello-world] (main  =)
+    $ luajit hw.lua
+    A: 	Hello, World!
+    B: 	42
+```
+
+Lets try it with Neovim with the luarocks executable on my PATH,
+
+```vim
+    : checkhealth lazy
+    lazy:                                           require("lazy.health").check()
+
+    lazy.nvim ~
+    - {lazy.nvim} version `11.17.1`
+    - ✅ OK {git} `version 2.43.0`
+    - ✅ OK no existing packages found by other package managers
+    - ✅ OK packer_compiled.lua not found
+
+    luarocks ~
+    - checking `hererocks` installation
+    - ✅ OK no plugins require `luarocks`, so you can ignore any warnings below
+    - ✅ OK {python3} `Python 3.13.3`
+    - ❌ ERROR {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks} not installed
+    - ⚠️ WARNING {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua} version `5.1` not installed
+    - ⚠️ WARNING Lazy won't be able to install plugins that require `luarocks`.
+      Here's what you can do:
+       - fix your `luarocks` installation
+       - disable *hererocks* with `opts.rocks.hererocks = false`
+       - disable `luarocks` support completely with `opts.rocks.enabled = false`
+```
+
+Looks like it is looking for luarocks in
+`~/.local/share/nvim/lazy-rocks/hererocks/bin`. So lets install another
+instance there. The name [hererocks][7] is associated with a Python
+script that installs multiple versions of Lua, LuaJIT, and LuaRocks.
+
+```fish
+    $ ./configure --prefix=/home/grs/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=/usr/include/luajit-2.1
+
+    Configuring LuaRocks version 3.12.0...
+
+    Lua version detected: 5.1
+    Lua interpreter found: /usr/bin/luajit
+    lua.h found: /usr/include/luajit-2.1/lua.h
+    unzip found in PATH: /usr/bin
+
+    Done configuring.
+
+    LuaRocks will be installed at......: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    LuaRocks will install rocks at.....: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    LuaRocks configuration directory...: /home/grs/.local/share/nvim/lazy-rocks/hererocks/etc/luarocks
+    Using Lua from.....................: /usr
+    Lua include directory..............: /usr/include/luajit-2.1
+
+    * Type make and make install:
+      to install to /home/grs/.local/share/nvim/lazy-rocks/hererocks as usual.
+    * Type make bootstrap:
+      to install LuaRocks into /home/grs/.local/share/nvim/lazy-rocks/hererocks as a rock.
+
+    $ make
+    $ make install
+```
+
+Let's check to see if nvim is happy.
+
+```vim
+    : checkhealth lazy
+    lazy:                                           require("lazy.health").check()
+
+    lazy.nvim ~
+    - {lazy.nvim} version `11.17.1`
+    - ✅ OK {git} `version 2.43.0`
+    - ✅ OK no existing packages found by other package managers
+    - ✅ OK packer_compiled.lua not found
+
+    luarocks ~
+    - checking `hererocks` installation
+    - ✅ OK no plugins require `luarocks`, so you can ignore any warnings below
+    - ✅ OK {python3} `Python 3.13.3`
+    - ✅ OK {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks} `3.12.0`
+    - ⚠️ WARNING {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua} version `5.1` not installed
+```
+
+I don't like that last warning.
+
+##### Duck.ai says
+
+LuaRocks can work with the built-in LuaJIT that comes with Neovim, but
+it typically requires an external Lua installation (like Lua 5.1) for
+managing and installing packages. Here’s a breakdown:
+
+Neovim's LuaJIT: Neovim uses LuaJIT, which is compatible with Lua 5.1.
+This means that Lua scripts written for Lua 5.1 should generally work in
+Neovim without modification. LuaRocks Installation: When you install
+LuaRocks, it usually expects a standalone Lua installation (like Lua
+5.1) to function properly. This is because LuaRocks manages packages and
+dependencies that are often installed in a global Lua environment. Using
+LuaRocks with Neovim: If you want to use LuaRocks with Neovim's LuaJIT,
+you can configure LuaRocks to point to the LuaJIT binary. This can be
+done by setting the LUA environment variable to the path of Neovim's
+LuaJIT when installing LuaRocks or by configuring LuaRocks to use the
+LuaJIT paths. Compatibility: While you can use LuaRocks with Neovim's
+LuaJIT, some packages may have dependencies that expect a standard Lua
+installation. In such cases, you might need to ensure that the packages
+are compatible with LuaJIT. In summary, while LuaRocks can be configured
+to work with Neovim's built-in LuaJIT, it typically requires an external
+Lua installation for managing packages effectively.
+
+##### TODO: Find Neovim's luajit
+
+Try `$ fd '5\.1' /usr`
+
 ---
 
 [1]: https://github.com/grscheller/grok-lua/blob/main/projects/01-hello-world/hw.lua
 [2]: https://github.com/torch/luajit-rocks
 [3]: https://luarocks.org/
 [4]: https://lazy.folke.io/news#11x
+[5]: https://luarocks.org/m/luajit
+[6]: https://luarocks.github.io/luarocks/releases/
+[7]: https://github.com/mpeterv/hererocks
