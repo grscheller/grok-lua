@@ -53,7 +53,7 @@ See [hw.lua][1] from my first Lua project for the source code.
 
 ### 2025-06-10:
 
-#### Installing a Lua environment (Redone 2025-06-11)
+#### Installing a Lua environment (Redone 2025-06-12)
 
 Moved from Arch Linux to Pop!_OS 24.04 LTS x86_64. I am using a late
 COSMIC desktop Alpha release. I don't trust what the underlying Ubuntu
@@ -215,7 +215,7 @@ Now lets build and install it.
 As expected, the first command installed nothing new. I think
 configuration failed because it needs a development version?
 
-```
+```fish
     $ apt list '*' | grep -i luajit
 
     WARNING: apt does not have a stable CLI interface. U1se with caution in scripts.
@@ -377,25 +377,31 @@ are compatible with LuaJIT. In summary, while LuaRocks can be configured
 to work with Neovim's built-in LuaJIT, it typically requires an external
 Lua installation for managing packages effectively.
 
-### 2025-06-11:
-
 What Duck.ai says above is not quite right. One cannot "easily" use the
-builtin LuaJIT in this way. But, it is correct that Lua 5.1 is what
+builtin LuaJIT in this way. But, it is correct about Lua 5.1 being what
 LuaRocks is expecting to be driven with.
+
+### 2025-06-11:
 
 Yesterday work done on my godel2 workstation computer. Today working on
 my noether2 personal laptop, both PopOS Cosmic Alpha.
 
-#### Install Lua 5.1.5 and LuaRocks
+#### Install Lua 5.1.5 and LuaRocks (on noether2)
+
+`<clip>`
+
+### 2025-06-12:
+
+#### Install Lua 5.1.5 and LuaRocks (repeat on hamilton4)
+
+While repeating noether2 install, I discovered some errors. Morphing
+yesterday's write up to what I did today on hamilton4.
 
 Installed hererocks 0.25.1 from PyPI which is maintained by the luarocks
-group, Used it to install Lua 5.1.5 with a patch. When I installed
-luarocks with it, it istalled version 3.8.0. According to Duck.ai,
-Neovim needs LuaRocks >=3.11.1 but <4.0.0. I could not find a source for
-this. So I built it from source leaveraging the Lua 5.1.5 I just
-installed with heredocs.
+group, Used it to install Lua 5.1.5 with a patch. This version, not the
+native LuaJIT version, is needed to install and drive LuaRocks.
 
-```
+```fish
     $ hererocks --lua 5.1.5 --patch ~/.local/share/nvim/lazy-rocks/hererocks
     Fetching Lua 5.1.5 (cached)
     Verifying SHA256 checksum
@@ -406,7 +412,12 @@ installed with heredocs.
     Done
 ```
 
-```
+Unfortunately, hererocks installs version 3.8.0 of LuaRocks. According
+to Duck.ai (I could not find a source for this) Neovim needs LuaRocks
+`>=3.11.1` but `~<4.0.0`.  So I built it from source obtained from
+[luarocks.org][3].
+
+```fish
     $ sudo apt install build-essential libreadline-dev unzip
 
     $ apt list '*' | grep -i '^liblua5.1.0-dev'
@@ -416,7 +427,7 @@ installed with heredocs.
     $ sudo apt install liblua5.1-0-dev
     $ cd ~/build/luarocks-3.12.0/
 
-    $ ./configure --prefix=/home/grs/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=/usr/include/lua5.1
+    $ ./configure --prefix=~/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=~/.local/share/nvim/lazy-rocks/hererocks/include
 
     Configuring LuaRocks version 3.12.0...
 
@@ -431,7 +442,7 @@ installed with heredocs.
     LuaRocks will install rocks at.....: /home/grs/.local/share/nvim/lazy-rocks/hererocks
     LuaRocks configuration directory...: /home/grs/.local/share/nvim/lazy-rocks/hererocks/etc/luarocks
     Using Lua from.....................: /home/grs/.local/share/nvim/lazy-rocks/hererocks
-    Lua include directory..............: /usr/include/lua5.1
+    Lua include directory..............: /home/grs/.local/share/nvim/lazy-rocks/hererocks/include
 
     $ make
     $ make install
@@ -452,6 +463,7 @@ pyenv but for Lua "virtual environments."
 
     lazy:                                           require("lazy.health").check()
 
+    lazy.nvim ~
     - {lazy.nvim} version `11.17.1`
     - ✅ OK {git} `version 2.43.0`
     - ✅ OK no existing packages found by other package managers
@@ -465,6 +477,10 @@ pyenv but for Lua "virtual environments."
 ```
 
 Now lazy.nvim is happy.
+
+For now, I configured my environment to find this install of Lua. Will
+need to revisit this once I start Lua coding outside of my Neovim
+configurations.
 
 ---
 
