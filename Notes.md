@@ -335,6 +335,7 @@ Let's check to see if nvim is happy.
 
 ```vim
     : checkhealth lazy
+
     lazy:                                           require("lazy.health").check()
 
     lazy.nvim ~
@@ -362,8 +363,8 @@ managing and installing packages. Here’s a breakdown:
 Neovim's LuaJIT: Neovim uses LuaJIT, which is compatible with Lua 5.1.
 This means that Lua scripts written for Lua 5.1 should generally work in
 Neovim without modification. LuaRocks Installation: When you install
-LuaRocks, it usually expects a standalone Lua installation (like Lua
-5.1) to function properly. This is because LuaRocks manages packages and
+LuaRocks, it usually expects a standalone Lua installation (like Lua5.1)
+to function properly. This is because LuaRocks manages packages and
 dependencies that are often installed in a global Lua environment. Using
 LuaRocks with Neovim: If you want to use LuaRocks with Neovim's LuaJIT,
 you can configure LuaRocks to point to the LuaJIT binary. This can be
@@ -376,9 +377,94 @@ are compatible with LuaJIT. In summary, while LuaRocks can be configured
 to work with Neovim's built-in LuaJIT, it typically requires an external
 Lua installation for managing packages effectively.
 
-##### TODO: Find Neovim's luajit
+### 2025-06-11:
 
-Try `$ fd '5\.1' /usr`
+What Duck.ai says above is not quite right. One cannot "easily" use the
+builtin LuaJIT in this way. But, it is correct that Lua 5.1 is what
+LuaRocks is expecting to be driven with.
+
+Yesterday work done on my godel2 workstation computer. Today working on
+my noether2 personal laptop, both PopOS Cosmic Alpha.
+
+#### Install Lua 5.1.5 and LuaRocks
+
+Installed hererocks 0.25.1 from PyPI which is maintained by the luarocks
+group, Used it to install Lua 5.1.5 with a patch. When I installed
+luarocks with it, it istalled version 3.8.0. According to Duck.ai,
+Neovim needs LuaRocks >=3.11.1 but <4.0.0. I could not find a source for
+this. So I built it from source leaveraging the Lua 5.1.5 I just
+installed with heredocs.
+
+```
+    $ hererocks --lua 5.1.5 --patch ~/.local/share/nvim/lazy-rocks/hererocks
+    Fetching Lua 5.1.5 (cached)
+    Verifying SHA256 checksum
+    Building Lua 5.1.5
+    Patch for "When loading a file, Lua may call the reader function again after it returned end of input": OK
+    Applied 1 patch (1 available for this version)
+    Installing Lua 5.1.5
+    Done
+```
+
+```
+    $ sudo apt install build-essential libreadline-dev unzip
+
+    $ apt list '*' | grep -i '^liblua5.1.0-dev'
+    liblua5.1-0-dev/noble 5.1.5-9build2 amd64
+    liblua5.1-0-dev/noble 5.1.5-9build2 i386
+
+    $ sudo apt install liblua5.1-0-dev
+    $ cd ~/build/luarocks-3.12.0/
+
+    $ ./configure --prefix=/home/grs/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=/usr/include/lua5.1
+
+    Configuring LuaRocks version 3.12.0...
+
+    Lua version detected: 5.1
+    Lua interpreter found: /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua
+    lua.h found: /usr/include/lua5.1/lua.h
+    unzip found in PATH: /usr/bin
+
+    Done configuring.
+
+    LuaRocks will be installed at......: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    LuaRocks will install rocks at.....: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    LuaRocks configuration directory...: /home/grs/.local/share/nvim/lazy-rocks/hererocks/etc/luarocks
+    Using Lua from.....................: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    Lua include directory..............: /usr/include/lua5.1
+
+    $ make
+    $ make install
+
+    $ lua -v
+    Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio
+
+    $ luarocks --version
+    /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks 3.12.0
+    LuaRocks main command-line interface
+```
+
+The Lua 5.1.5 install also installed activation scripts similar to
+pyenv but for Lua "virtual environments."
+
+```vim
+    : checkhealth lazy
+
+    lazy:                                           require("lazy.health").check()
+
+    - {lazy.nvim} version `11.17.1`
+    - ✅ OK {git} `version 2.43.0`
+    - ✅ OK no existing packages found by other package managers
+    - ✅ OK packer_compiled.lua not found
+
+    luarocks ~
+    - checking `luarocks` installation
+    - ✅ OK no plugins require `luarocks`, so you can ignore any warnings below
+    - ✅ OK {luarocks} `/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks 3.12.0`
+    - ✅ OK {lua} `Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio`
+```
+
+Now lazy.nvim is happy.
 
 ---
 
