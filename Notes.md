@@ -280,6 +280,7 @@ Lets try it with Neovim with the luarocks executable on my PATH,
     : checkhealth lazy
     lazy:                                           require("lazy.health").check()
 
+    ==============================================================================
     lazy.nvim ~
     - {lazy.nvim} version `11.17.1`
     - ✅ OK {git} `version 2.43.0`
@@ -336,6 +337,7 @@ Let's check to see if nvim is happy.
 ```vim
     : checkhealth lazy
 
+    ==============================================================================
     lazy:                                           require("lazy.health").check()
 
     lazy.nvim ~
@@ -461,6 +463,7 @@ pyenv but for Lua "virtual environments."
 ```vim
     : checkhealth lazy
 
+    ==============================================================================
     lazy:                                           require("lazy.health").check()
 
     lazy.nvim ~
@@ -493,13 +496,6 @@ $ digpath luajit lua
 /usr/bin/luajit
 
 $ apt list '*' | grep -i luajit | grep installed
-
-
-
-
-
-
-
 
 $ dfInstall --check
 nvimInstall: Lua 5.1 is not installed in /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin
@@ -585,6 +581,141 @@ the internal LuaJIT baked into Neovim.
 TODO: Since I have to build LuaRocks anyway, might as well also build
 Lua 5.1.5 directly. Maybe automate it?
 
+### 2025-06-11:
+
+#### Install Lua 5.1.5 and LuaRocks without hererocks
+
+Down loaded Lua 5.1.5 from [Lua website][8] to the parent directory
+where I previously built luarocks.
+
+```fish
+    $ ax lua-5.1.5.tar.gz
+    $ cd lua-5.1.5/
+
+    $ make
+    Please do
+       make PLATFORM
+    where PLATFORM is one of these:
+       aix ansi bsd freebsd generic linux macosx mingw posix solaris
+    See INSTALL for complete instructions.
+```
+INSTALL file not clear how to set install directory. Reading Makefile.
+
+Editing Makefile, replace `INSTALL_TOP= /usr/local` with
+`INSTALL_TOP= /home/grs/.local/share/nvim/lazy-rocks/hererocks`.
+
+```fish
+    $ rm -rf ~/.local/share/nvim/lazy-rocks/hererocks/*
+    $ make linux
+    $ make install
+    cd src && mkdir -p /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin /home/grs/.local/share/nvim/lazy-rocks/hererocks/include /home/grs/.local/share/nvim/lazy-rocks/hererocks/lib /home/grs/.local/share/nvim/lazy-rocks/hererocks/man/man1 /home/grs/.local/share/nvim/lazy-rocks/hererocks/share/lua/5.1 /home/grs/.local/share/nvim/lazy-rocks/hererocks/lib/lua/5.1
+    cd src && install -p -m 0755 lua luac /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin
+    cd src && install -p -m 0644 lua.h luaconf.h lualib.h lauxlib.h ../etc/lua.hpp /home/grs/.local/share/nvim/lazy-rocks/hererocks/include
+    cd src && install -p -m 0644 liblua.a /home/grs/.local/share/nvim/lazy-rocks/hererocks/lib
+    cd doc && install -p -m 0644 lua.1 luac.1 /home/grs/.local/share/nvim/lazy-rocks/hererocks/man/man1
+```
+
+Now check the install of Lua.
+
+```fish
+    $ digpath lua
+    /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua
+
+    $ lua -v
+    Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio
+
+    $ ldd /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua
+
+            linux-vdso.so.1 (0x00007b4fd47f8000)
+            libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007b4fd46c0000)
+            libreadline.so.8 => /lib/x86_64-linux-gnu/libreadline.so.8 (0x00007b4fd466b000)
+            libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007b4fd4400000)
+            /lib64/ld-linux-x86-64.so.2 (0x00007b4fd47fa000)
+            libtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007b4fd4637000)
+```
+
+Now lets build LuaRocks.
+
+```fish
+    $ cd ..
+    $ ax luarocks-3.12.0.tar.gz
+    $ cd luarocks-3.12.0/
+
+    $ ./configure --prefix=$HOME/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=$HOME/.local/share/nvim/lazy-rocks/hererocks/include
+
+    Configuring LuaRocks version 3.12.0...
+
+    Lua version detected: 5.1
+    Lua interpreter found: /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua
+    lua.h found: /home/grs/.local/share/nvim/lazy-rocks/hererocks/include/lua.h
+    unzip found in PATH: /usr/bin
+
+    Done configuring.
+
+    LuaRocks will be installed at......: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    LuaRocks will install rocks at.....: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    LuaRocks configuration directory...: /home/grs/.local/share/nvim/lazy-rocks/hererocks/etc/luarocks
+    Using Lua from.....................: /home/grs/.local/share/nvim/lazy-rocks/hererocks
+    Lua include directory..............: /home/grs/.local/share/nvim/lazy-rocks/hererocks/include
+
+    $ make
+    $make install
+```
+
+Now check the install of LuaRocks.
+
+```fish
+    $ digpath luarocks
+    /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks
+
+    $ luarocks --version
+    /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks 3.12.0
+    LuaRocks main command-line interface
+```
+
+Eventually I want to use luarocks outside of nvim and want to keep them
+separate. Editing
+`~/.local/share/nvim/lazy-rocks/hererocks/etc/luarocks/config-5.1.lua`.
+
+```lua
+    -- LuaRocks configuration
+
+    rocks_trees = {
+       { name = "user", root = "/home/grs/.local/share/grs/nvim/.luarocks" };
+       { name = "system", root = "/home/grs/.local/share/nvim/lazy-rocks/hererocks" };
+    }
+    variables = {
+       LUA_DIR = "/home/grs/.local/share/nvim/lazy-rocks/hererocks";
+       LUA_INCDIR = "/home/grs/.local/share/nvim/lazy-rocks/hererocks/include";
+       LUA_BINDIR = "/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin";
+       LUA_VERSION = "5.1";
+       LUA = "/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua";
+    }
+```
+
+Now let's see if lazy.nvim is happy with the install.
+
+```vim
+    : checkhealth lazy
+
+    ==============================================================================
+    lazy:                                           require("lazy.health").check()
+
+    lazy.nvim ~
+    - {lazy.nvim} version `11.17.1`
+    - ✅ OK {git} `version 2.43.0`
+    - ✅ OK no existing packages found by other package managers
+    - ✅ OK packer_compiled.lua not found
+
+    luarocks ~
+    - checking `luarocks` installation
+    - ✅ OK no plugins require `luarocks`, so you can ignore any warnings below
+    - ✅ OK {luarocks} `/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks 3.12.0`
+    - ✅ OK {lua} `Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio`
+```
+
+Success!
+
 ---
 
 [1]: https://github.com/grscheller/grok-lua/blob/main/projects/01-hello-world/hw.lua
@@ -593,4 +724,5 @@ Lua 5.1.5 directly. Maybe automate it?
 [4]: https://lazy.folke.io/news#11x
 [5]: https://luarocks.org/m/luajit
 [6]: https://luarocks.github.io/luarocks/releases/
-[7]: https://github.com/mpeterv/hererocks
+[7]: https://github.com/luarocks/hererocks
+[8]: https://www.lua.org/
