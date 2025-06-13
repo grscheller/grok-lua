@@ -427,7 +427,7 @@ to Duck.ai (I could not find a source for this) Neovim needs LuaRocks
     $ sudo apt install liblua5.1-0-dev
     $ cd ~/build/luarocks-3.12.0/
 
-    $ ./configure --prefix=~/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=~/.local/share/nvim/lazy-rocks/hererocks/include
+    $ ./configure --prefix=$HOME/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=$HOME/.local/share/nvim/lazy-rocks/hererocks/include
 
     Configuring LuaRocks version 3.12.0...
 
@@ -481,6 +481,109 @@ Now lazy.nvim is happy.
 For now, I configured my environment to find this install of Lua. Will
 need to revisit this once I start Lua coding outside of my Neovim
 configurations.
+
+### 2025-06-12:
+
+#### Fix Lua 5.1.5 and LuaRocks 3.12.0 installation on godel2
+
+Undo the install I did earlier this week.
+
+```fish
+$ digpath luajit lua
+/usr/bin/luajit
+
+$ apt list '*' | grep -i luajit | grep installed
+
+
+
+
+
+
+
+
+$ dfInstall --check
+nvimInstall: Lua 5.1 is not installed in /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin
+
+$ rm -r ~/.local/share/nvim/lazy-rocks/hererocks/
+$ dfInstall --check
+nvimInstall: Lua 5.1 is not installed in /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin
+nvimInstall: LuaRocks is not installed in /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin
+
+$ ve -c -r
+$ hererocks --lua 5.1.5 --patch ~/.local/share/nvim/lazy-rocks/hererocks
+
+$ hererocks --lua 5.1.5 --patch ~/.local/share/nvim/lazy-rocks/hererocks
+Fetching Lua 5.1.5 from https://www.lua.org/ftp/lua-5.1.5.tar.gz
+Verifying SHA256 checksum
+Building Lua 5.1.5
+Patch for "When loading a file, Lua may call the reader function again after it returned end of input": OK
+Applied 1 patch (1 available for this version)
+Installing Lua 5.1.5
+Done.
+
+$ $DOTFILES_GIT_REPO/bin/dfInstall --check
+nvimInstall: LuaRocks is not installed in /home/grs/.local/share/nvim/lazy-rocks/hererocks/bin
+
+$ cd ~/build/luarocks/
+$ ls
+luarocks-3.12.0  luarocks-3.12.0.tar.gz
+
+$ cd luarocks-3.12.0/
+$ gmake clean
+
+$ cd luarocks-3.12.0/
+$ ./configure --prefix=$HOME/.local/share/nvim/lazy-rocks/hererocks --with-lua-include=$HOME/.local/share/nvim/lazy-rocks/hererocks/include
+
+Configuring LuaRocks version 3.12.0...
+
+Lua version detected: 5.1
+Lua interpreter found: /usr/bin/luajit
+lua.h found: /home/grs/.local/share/nvim/lazy-rocks/hererocks/include/lua.h
+unzip found in PATH: /usr/bin
+
+Done configuring
+```
+
+Oppps... Seems I managed to install lots of Lua stuff. Getting rid of it
+is somewhat messy.
+
+Factoid:
+
+```fish
+    $ apt-cache rdepends --installed libluajit2-5.1-common
+    libluajit2-5.1-common
+    Reverse Depends:
+      libluajit2-5.1-2
+
+    $ apt-cache rdepends --installed libluajit2-5.1-2
+    libluajit2-5.1-2
+    Reverse Depends:
+      neovim
+      neovim
+```
+
+Seems Neovim is requiring the "other" maintained library
+
+```fish
+$ apt search libluajit-5.1.2
+Sorting... Done
+Full Text Search... Done
+libluajit-5.1-2/noble 2.1.0+git20231223.c525bcb+dfsg-1 amd64
+  Just in time compiler for Lua - library version
+
+$ apt search libluajit2-5.1.2
+Sorting... Done
+Full Text Search... Done
+libluajit2-5.1-2/noble,now 2.1-20230410-1build1 amd64 [installed,automatic]
+  OpenResty-maintained branch of LuaJIT (shared objects)
+```
+
+Oh, one is a static library, the other is a shared library. This has
+nothing to do with the Lua 5.1 version needed for LuaRocks. It all about
+the internal LuaJIT baked into Neovim.
+
+TODO: Since I have to build LuaRocks anyway, might as well also build
+Lua 5.1.5 directly. Maybe automate it?
 
 ---
 
