@@ -716,6 +716,23 @@ Now let's see if lazy.nvim is happy with the install.
 
 Success!
 
+So, what is `luarocks-admin` used for?
+
+It is used to administer a LuaRocks repository, not to be confused with
+a rock-tree.
+
+A repository is the source of the rocks, while the rock-tree is the
+destination where they are installed. LuaRocks supports both local and
+remote repositories. The most commonly used one is the public LuaRocks
+repository on luarocks.org.
+
+When LuaRocks is used to install a rock, it downloads it from
+a specified repository (or repositories) and places it in a chosen
+rock-tree. The rock-tree then allows Lua's loader to find and load
+installed modules when needed. In summary, a LuaRocks repository is
+where you get rocks from, and a LuaRocks rock-tree is where you put
+rocks when you install them. 
+
 ---
 
 [1]: https://github.com/grscheller/grok-lua/blob/main/projects/01-hello-world/hw.lua
