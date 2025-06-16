@@ -277,7 +277,7 @@ The installed luajit works.
 Lets try it with Neovim with the luarocks executable on my PATH,
 
 ```vim
-    : checkhealth lazy
+    :checkhealth lazy
     lazy:                                           require("lazy.health").check()
 
     ==============================================================================
@@ -335,7 +335,7 @@ script that installs multiple versions of Lua, LuaJIT, and LuaRocks.
 Let's check to see if nvim is happy.
 
 ```vim
-    : checkhealth lazy
+    :checkhealth lazy
 
     ==============================================================================
     lazy:                                           require("lazy.health").check()
@@ -461,7 +461,7 @@ The Lua 5.1.5 install also installed activation scripts similar to
 pyenv but for Lua "virtual environments."
 
 ```vim
-    : checkhealth lazy
+    :checkhealth lazy
 
     ==============================================================================
     lazy:                                           require("lazy.health").check()
@@ -696,7 +696,7 @@ separate. Editing
 Now let's see if lazy.nvim is happy with the install.
 
 ```vim
-    : checkhealth lazy
+    :checkhealth lazy
 
     ==============================================================================
     lazy:                                           require("lazy.health").check()
@@ -732,6 +732,115 @@ rock-tree. The rock-tree then allows Lua's loader to find and load
 installed modules when needed. In summary, a LuaRocks repository is
 where you get rocks from, and a LuaRocks rock-tree is where you put
 rocks when you install them. 
+
+### 2025-06-15:
+
+#### Decided to try and install luarocks again with luarocks-nvim
+
+I removed my lua and luarocks installs. factuallylly removed the entire
+`~/.local/share/nvim/lazy-rocks subdirectory.
+
+```vim
+    :checkhealth luarocks-nvim
+
+    ==============================================================================
+    luarocks-nvim:                         require("luarocks-nvim.health").check()
+
+    luarocks.nvim ~
+    - luarocks system is not prepared
+    - ✅ OK git is installed
+    - ❌ ERROR lua is not installed! If you're on unix, please install it using your package manager. For windows use https://github.com/rjpcomputing/luaforwindows.
+    - ✅ OK make is installed
+```
+
+From the README.md file on `vhyrro/luarocks.nvim`, the 5.1 or JIT
+versions of Lua need to be installed. Lets go with LuaJIT.
+
+```fish
+    $ apt search '^luajit'
+    Sorting... Done
+    Full Text Search... Done
+    luajit/noble 2.1.0+git20231223.c525bcb+dfsg-1 amd64
+      Just in time compiler for Lua programming language version 5.1
+
+    luajit2/noble 2.1-20230410-1build1 amd64
+      OpenResty-maintained branch of LuaJIT (interpreter)
+```
+
+Seems to be two flavors. What the heck is OpenRusty?
+OpenResty® is a dynamic web platform based on NGINX and LuaJIT. It has
+a 2-clause BSD license. For now, lets stick with vanilla luajit.
+
+```fish
+    $ sudo apt install luajit
+    $ digpath luajit
+    /usr/bin/luajit
+```
+
+Didn't work. from the help docs, 
+
+```vim
+    :help luajit.nvim:
+
+    **On unix systems**, this is as simple as using your system package manager (`brew`, `pacman`, `apt` etc.).
+    Just make sure that you're installing the 5.1 or JIT version of lua!
+    Here's a list of known package names for various package managers (choose the one your distro uses):
+    - brew (MacOS): `brew install luajit`
+    - apt: `sudo apt install liblua5.1-0-dev`
+    - dnf: `sudo dnf install compat-lua-devel-5.1.5`
+    - pacman: `sudo pacman -Syu lua51` or `sudo pacman -Syu luajit`
+
+```
+
+Installing `liblua5.1-0-dev` did not work. When I uninstalled it and
+installed `apt install lua5.1` and `lua5.1-doc` I get
+
+```vim
+    :checkhealth luarocks-nvim
+
+    ==============================================================================
+    luarocks-nvim:                         require("luarocks-nvim.health").check()
+
+    luarocks.nvim ~
+    - luarocks system is not prepared
+    - ✅ OK git is installed
+    - ✅ OK lua is installed
+    - ✅ OK make is installed
+```
+
+I reinstalled `liblua5.1-dev` but it did not help.
+
+So, how do I "prepare" it?
+
+```vim
+    :Lazy build luarocks.nvim
+    :checkhealth luarocks-nvim
+
+    ==============================================================================
+    luarocks-nvim:                         require("luarocks-nvim.health").check()
+    
+    luarocks.nvim ~
+    - ✅ OK luarocks is installed, system is prepared to install rocks!
+```
+
+When I tried to down load 3 of my plugins from LuaRocks, it failed.
+Seems that lazy.nvim tried downloading from
+`https://nvim-neorocks.github.io/rocks-binaries/` instead of the
+LuaRocks repo. That is the repository used by the nvim-neorocks/lux
+package manager.
+
+- luarocks
+  - The original Lua package manager
+- rocks.nvim
+  - A Neovim plugin manager that uses luarocks under the hood,
+    - will be rewritten soon to use Lux instead.
+
+Seems that lazy.nvim is gearing up to use Lux?
+
+The rocks.nvim-neorocks repo has mostly treesitter related stuff. It
+did have a rock for fzy, so I configured `vhyrro/luarocks.nvim` to
+install the rock for fzy. It worked, but I use a rust version of this
+fuzzy finder.
 
 ---
 
