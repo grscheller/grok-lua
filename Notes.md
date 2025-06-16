@@ -279,7 +279,6 @@ Lets try it with Neovim with the luarocks executable on my PATH,
 ```vim
     :checkhealth lazy
     lazy:                                           require("lazy.health").check()
-
     ==============================================================================
     lazy.nvim ~
     - {lazy.nvim} version `11.17.1`
@@ -336,7 +335,6 @@ Let's check to see if nvim is happy.
 
 ```vim
     :checkhealth lazy
-
     ==============================================================================
     lazy:                                           require("lazy.health").check()
 
@@ -462,7 +460,6 @@ pyenv but for Lua "virtual environments."
 
 ```vim
     :checkhealth lazy
-
     ==============================================================================
     lazy:                                           require("lazy.health").check()
 
@@ -697,7 +694,6 @@ Now let's see if lazy.nvim is happy with the install.
 
 ```vim
     :checkhealth lazy
-
     ==============================================================================
     lazy:                                           require("lazy.health").check()
 
@@ -731,7 +727,7 @@ a specified repository (or repositories) and places it in a chosen
 rock-tree. The rock-tree then allows Lua's loader to find and load
 installed modules when needed. In summary, a LuaRocks repository is
 where you get rocks from, and a LuaRocks rock-tree is where you put
-rocks when you install them. 
+rocks when you install them.
 
 ### 2025-06-15:
 
@@ -742,7 +738,6 @@ I removed my lua and luarocks installs. factuallylly removed the entire
 
 ```vim
     :checkhealth luarocks-nvim
-
     ==============================================================================
     luarocks-nvim:                         require("luarocks-nvim.health").check()
 
@@ -777,7 +772,7 @@ a 2-clause BSD license. For now, lets stick with vanilla luajit.
     /usr/bin/luajit
 ```
 
-Didn't work. from the help docs, 
+Didn't work. from the help docs,
 
 ```vim
     :help luajit.nvim:
@@ -797,7 +792,6 @@ installed `apt install lua5.1` and `lua5.1-doc` I get
 
 ```vim
     :checkhealth luarocks-nvim
-
     ==============================================================================
     luarocks-nvim:                         require("luarocks-nvim.health").check()
 
@@ -815,10 +809,11 @@ So, how do I "prepare" it?
 ```vim
     :Lazy build luarocks.nvim
     :checkhealth luarocks-nvim
-
     ==============================================================================
-    luarocks-nvim:                         require("luarocks-nvim.health").check()
-    
+    luarocks-nvim:                         require("luarocks-nvim.health").check()$ fd 'luarocks\.lua'
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/compiler/compilers/luarocks.lua
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/managers/luarocks.lua
+
     luarocks.nvim ~
     - ✅ OK luarocks is installed, system is prepared to install rocks!
 ```
@@ -842,6 +837,160 @@ did have a rock for fzy, so I configured `vhyrro/luarocks.nvim` to
 install the rock for fzy. It worked, but I use a rust version of this
 fuzzy finder.
 
+### 2025-06-16:
+
+#### Caught a mistake
+
+I think I missed a step while repeating what I did on Noether2 on
+Hamilton4 involving the build process. After removing my manual install,
+
+```fish
+    $ dfInstall  # triggered lazy.nvim activity with spell file update
+    $ nvim       # manual Lazy update and cleanup via :Lazy
+    $ sudo apt install liblua5.1-0-dev lua5.1 lua5.1-doc
+    $ cd ~/.local/share/nvim/lazy/luarocks.nvim
+    $ nvim -l build.lua  # step I missed
+    $ nvim
+```
+ Then while in that directory (I don't know if that matters or not),
+
+```vim
+    :Lazy build luarocks.nvim$ fd 'luarocks\.lua'
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/compiler/compilers/luarocks.lua
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/managers/luarocks.lua
+    :checkhealth lazy
+      "snip"
+    - ❌ ERROR {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks} not installed
+    - ⚠️ WARNING {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua} version `5.1` not installed
+    - ⚠️ WARNING Lazy won't be able to install plugins that require `luarocks`.
+      "snip"
+    :Lazy build lazy
+    :checkhealth
+        "same result as before"
+```
+
+Just as I thought I was seeing the light at the end of the tunnel...
+
+Why is it now looking for a hererocks installation when hererocks is out
+of date?
+
+Time to use the nuclear option. Removed `~/.local/share/nvim/lazy` and
+`~/.local/share/nvim/lazy`. Now repeat what was done on noether2. After
+restarting nvim 2 times, without doing anything else.
+
+```vim
+    :checkhealth luarocks-nvim
+    ==============================================================================
+    luarocks-nvim:                         require("luarocks-nvim.health").check()
+
+    luarocks.nvim ~
+    - ✅ OK luarocks is installed, system is prepared to install rocks!
+
+    :checkhealth lazy
+    ==============================================================================
+    lazy:                                           require("lazy.health").check()
+
+    lazy.nvim ~
+    - {lazy.nvim} version `11.17.1`
+    - ✅ OK {git} `version 2.43.0`
+    - ✅ OK no existing packages found by other package managers
+    - ✅ OK packer_compiled.lua not found
+
+    luarocks ~
+    - checking `hererocks` installation
+    - ✅ OK no plugins require `luarocks`, so you can ignore any warnings below
+    - ✅ OK {python3} `Python 3.13.3`
+    - ❌ ERROR {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks} not installed
+    - ⚠️ WARNING {/home/grs/.local/share/nvim/lazy-rocks/hererocks/bin/lua} version `5.1` not installed
+    - ⚠️ WARNING Lazy won't be able to install plugins that require `luarocks`.
+      Here's what you can do:
+       - fix your `luarocks` installation
+       - disable *hererocks* with `opts.rocks.hererocks = false`
+       - disable `luarocks` support completely with `opts.rocks.enabled = false`
+
+    ==============================================================================
+    telescope._extensions.lazy: require("telescope._extensions.lazy.health").check()
+
+    telescope-lazy.nvim ~
+
+    Plugin installation status ~
+    - ✅ OK telescope installed
+    - ✅ OK lazy installed
+    - ⚠️ WARNING telescope-egrepify not installed (optional)
+    - ✅ OK telescope-file-browser installed (optional)
+```
+
+Seems to be a house divided?
+$ fd 'luarocks\.lua'
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/compiler/compilers/luarocks.lua
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/managers/luarocks.lua
+From `:help luarocks-nvim` with markdown heading reduced,
+
+##### Lazy.nvim Integration
+
+For users employing the Lazy.nvim plugin manager, `luarocks.nvim` can be added to your configuration with the following code:
+
+```lua
+{
+  "vhyrro/luarocks.nvim",
+  priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
+  config = true,
+}
+```
+
+Upon installing, an automatic build step will be invoked by `lazy.nvim` in an attempt to compile a local luarocks installation on your machine.
+If you're having issues with this, be sure to manually run `:Lazy build luarocks.nvim`!
+
+Generally, other plugins which rely on `luarocks.nvim` as their dependency manager perform automatic
+dependency installation in their `build.lua`s, so you don't even have to touch any options yourself!
+Just set up this plugin and the rest should be automatic.
+
+##### Installing a Rock List
+
+To install a set of rocks (with the ability to add version constraints) use the following configuration instead:
+
+```lua
+{
+  "vhyrro/luarocks.nvim",
+  priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
+  opts = {
+    rocks = { "fzy", "pathlib.nvim ~> 1.0" }, -- specifies a list of rocks to install
+    -- luarocks_build_args = { "--with-lua=/my/path" }, -- extra options to pass to luarocks's configuration script
+  },
+}
+```
+
+Maybe I am over thinking this?
+
+Any case, while looking for luarocks.lua, I found
+
+```fish
+    $ cd .local/
+    $ fd 'luarocks\.lua'
+    share/nvim/lazy/mason.nvim/lua/mason-core/installer/compiler/compilers/luarocks.lua
+    share/nvim/lazy/mason.nvim/lua/mason-core/installer/managers/luarocks.lua
+```$ fd 'luarocks\.lua'
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/compiler/compilers/luarocks.lua
+share/nvim/lazy/mason.nvim/lua/mason-core/installer/managers/luarocks.lua
+
+But,
+
+```vim
+: checkhealth mason
+      "snip"
+    mason.nvim [Languages] ~
+    - ⚠️ WARNING luarocks: not available
+      - ADVICE:
+        - spawn: luarocks failed with exit code - and signal -. Could not find executable "luarocks" in PATH.
+      "snip"
+```
+
+#### All right back to pure Lua
+
+This side journey working getting LuaRocks, or whatever it is morphing
+to, to work taught me much about Lua implementations. Time to get back
+to standalone Lua development.
+
 ---
 
 [1]: https://github.com/grscheller/grok-lua/blob/main/projects/01-hello-world/hw.lua
@@ -851,4 +1000,4 @@ fuzzy finder.
 [5]: https://luarocks.org/m/luajit
 [6]: https://luarocks.github.io/luarocks/releases/
 [7]: https://github.com/luarocks/hererocks
-[8]: https://www.lua.org/
+[8]:: https://www.lua.org/
